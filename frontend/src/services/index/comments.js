@@ -1,7 +1,7 @@
 import axios from "axios";
 import toast from "react-hot-toast";
 
-const BASE_URL = process.env.VITE_BACKEND_BASE_URL;
+const BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL;
 const axiosInstance = axios.create({ baseURL: BASE_URL });
 
 export const createNewComment = async ({
