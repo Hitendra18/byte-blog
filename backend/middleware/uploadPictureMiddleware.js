@@ -28,7 +28,12 @@ export const uploadPicture = multer({
     let ext = path.extname(file.originalname);
     console.log(ext);
 
-    if (ext !== ".png" && ext !== ".jpg" && ext !== ".jpeg") {
+    if (
+      ext !== ".png" &&
+      ext !== ".jpg" &&
+      ext !== ".jpeg" &&
+      ext !== ".webp"
+    ) {
       return cb(new Error("Only images are allowed..."));
     }
     return cb(null, true);
