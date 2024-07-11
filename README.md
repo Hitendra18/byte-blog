@@ -41,17 +41,19 @@ Normal User:
 3. Now install dependencies: `npm install`
 4. Rename `.env.example` to `.env`
 5. Fill in the required environment variables in `.env`:
-   - `MONGO_URI`: Your MongoDB connection URI
+   - `MONGO_URI`: Your MongoDB connection **URI**
    - `JWT_SECRET`: your `jsonwebtoken` custom key
    - `NODE_ENV`: `development`
    - `PORT`: `5000`
+   - `CLOUDINARY_CLOUD_NAME`: 
+   - `CLOUDINARY_API_KEY`:
+   - `CLOUDINARY_API_SECRET`:
 6. Now start the server: `npm run dev`
 7. Open new terminal window and navigate to frontend directory using `cd frontend`
 8. Install dependencies: `npm install`
 9. Rename `.env.example` to `.env
 10. Fill in the required environment variables in `.env`:
     -  `REACT_APP_BACKEND_BASE_URL`: Your backend url
-    -  `REACT_APP_UPLOAD_FOLDER_BASE_URL`: URL to upload folder of your backend
 11.  Start the frontend: `npm start`
 12.  Now you should be able to use it 😊
 

@@ -17,6 +17,5 @@ router
   .route("/:commentId")
   .put(authGuard, updateComment)
   .delete(authGuard, deleteComment);
-// router.put("/:commentId", authGuard, updateComment);
 
 export default router;

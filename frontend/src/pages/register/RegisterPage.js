@@ -21,7 +21,6 @@ const RegisterPage = () => {
     onSuccess: (data) => {
       dispatch(userActions.setUserInfo(data));
       localStorage.setItem("account", JSON.stringify(data));
-      console.log(data);
     },
     onError: (error) => {
       toast.error(error.message);
@@ -53,7 +52,6 @@ const RegisterPage = () => {
   const password = watch("password");
 
   const submitHandler = (data) => {
-    // console.log(data);
     const { name, email, password } = data;
     mutate({ name, email, password });
   };

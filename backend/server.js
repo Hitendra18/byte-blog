@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 const app = express();
 
@@ -8,8 +10,6 @@ const __dirname = path.dirname(__filename);
 
 import connectDB from "./config/db.js";
 import cors from "cors";
-import dotenv from "dotenv";
-dotenv.config();
 connectDB();
 
 import userRoutes from "./routes/userRoutes.js";
@@ -38,13 +38,12 @@ app.use(
 app.use(express.json());
 
 /*********************  Test Route *********************/
-app.get("/", (req, res) => {
+app.get("/", (_, res) => {
   res.send("Welcome to the home page...");
 });
 
 /*********************  To Access Static Assets *********************/
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-// console.log(path.join(__dirname, "/uploads", "/1704934975820-Screenshot.png"));
 
 /*********************  Custom Routes *********************/
 app.use("/api/users", userRoutes);
@@ -59,5 +58,5 @@ app.use(errorResponserHandler);
 /*********************  Listening to PORT *********************/
 const PORT = process.env.PORT || "5000";
 app.listen(PORT, () => {
-  console.log("Listening to PORT", PORT);
+  console.log("Listening on PORT", PORT);
 });

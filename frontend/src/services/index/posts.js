@@ -46,7 +46,6 @@ export const getSinglePost = async ({
     return data;
   } catch (error) {
     console.log(error);
-    // toast.error(error.response.statusText);
     throw new Error(error.message);
   }
 };
@@ -74,7 +73,6 @@ export const updatePost = async ({ updatedData, slug, token }) => {
       },
     };
 
-    console.log("Post data to update", updatedData);
     const { data } = await axiosInstance.put(`/api/posts/${slug}`, updatedData, config);
     return data;
   } catch (error) {

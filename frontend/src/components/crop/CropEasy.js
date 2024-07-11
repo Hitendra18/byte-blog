@@ -30,7 +30,6 @@ const CropEasy = ({ photo, setOpenCrop }) => {
       localStorage.setItem("account", JSON.stringify(data));
       queryClient.invalidateQueries(["profile"]);
       toast.success("Profile picture is updated");
-      // console.log(data);
     },
     onError: (error) => {
       toast.error(error.message);

@@ -1,9 +1,17 @@
-import { uploadPicture } from "../middleware/uploadPictureMiddleware.js";
+import path from "path";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 import Post from "../models/Post.js";
 import User from "../models/User.js";
 import Comment from "../models/Comment.js";
 import { fileRemover } from "../utils/fileRemover.js";
 import mongoose from "mongoose";
+import {
+  deleteFromCloudinary,
+  uploadOnCloudinary,
+} from "../utils/cloudinary.js";
 
 export const registerUser = async (req, res, next) => {
   try {
@@ -61,7 +69,6 @@ export const loginUser = async (req, res, next) => {
 
 export const userProfile = async (req, res, next) => {
   try {
-    // console.log(req.user);
     let user = await User.findById(req.user._id);
     if (user) {
       return res.status(200).json({
@@ -88,33 +95,16 @@ export const updateProfile = async (req, res, next) => {
 
     let userId = req.user._id;
 
-    // console.log("userId", userId);
-    // console.log("userIdToUpdate", new mongoose.Types.ObjectId(userIdToUpdate));
-
-    // if (userId.equals(new mongoose.Types.ObjectId(userIdToUpdate))) {
-    //   console.log("They are equal");
-    // } else {
-    //   console.log("They are not equal");
-    // }
-
     if (!userId.equals(new mongoose.Types.ObjectId(userIdToUpdate))) {
       let error = new Error("Forbidden Resource");
       error.statusCode = 403;
       throw error;
     }
-    // if (!req.user.admin && userId !== userIdToUpdate) {
-    //   let error = new Error("Forbidden Resource");
-    //   error.statusCode = 403;
-    //   throw error;
-    // }
 
     const user = await User.findById(userId);
     if (!user) {
       throw new Error("Couldn't find user...");
     }
-
-    console.log("user", user);
-    console.log("req.body", req);
 
     if (typeof req.body.admin !== "undefined" && req.user.admin) {
       user.admin = req.body.admin;
@@ -145,52 +135,77 @@ export const updateProfile = async (req, res, next) => {
 
 export const updateProfilePicture = async (req, res, next) => {
   try {
-    const upload = uploadPicture.single("profilePicture");
-    upload(req, res, async function (err) {
-      if (err) {
-        const error = new Error(
-          "An unknown error occurred during uploading... " + err.message
-        );
-        next(error);
-      } else {
-        if (req.file) {
-          let filename;
-          const updatedUser = await User.findById(req.user._id);
-          filename = updatedUser.avatar;
-          if (filename) {
-            fileRemover(filename);
-          }
-          updatedUser.avatar = req.file.filename;
-          await updatedUser.save();
+    if (req.file) {
+      let filename = req.file.filename;
 
-          res.json({
-            _id: updatedUser._id,
-            avatar: updatedUser.avatar,
-            name: updatedUser.name,
-            email: updatedUser.email,
-            verified: updatedUser.verified,
-            admin: updatedUser.admin,
-            token: updatedUser.generateJWT(),
-          });
-        } else {
-          let filename;
-          let updatedUser = await User.findById(req.user._id);
-          filename = updatedUser.avatar;
-          updatedUser.avatar = "";
-          await updatedUser.save();
-          fileRemover(filename);
-          res.json({
-            _id: updatedUser._id,
-            avatar: updatedUser.avatar,
-            name: updatedUser.name,
-            email: updatedUser.email,
-            verified: updatedUser.verified,
-            admin: updatedUser.admin,
-            token: updatedUser.generateJWT(),
-          });
+      // find the user
+      const updatedUser = await User.findById(req.user._id);
+
+      // get avatar and avatarPublicId
+      let avatarPublicId = updatedUser.avatarPublicId;
+
+      // if there is previous avatar set then remove it
+      if (avatarPublicId) {
+        const res = await deleteFromCloudinary(avatarPublicId);
+        if (res == null) {
+          const err = new Error("error removing profile pic...");
+          return next(err);
         }
       }
-    });
+
+      // after removing old avatar upload new avatar to cloudinary
+      const uploadRes = await uploadOnCloudinary(
+        path.join(__dirname, "..", "uploads", filename)
+      );
+      fileRemover(filename);
+
+      // if not uploaded then throw an error
+      if (uploadRes == null) {
+        const err = new Error("error uploading profile pic...");
+        return next(err);
+      }
+
+      updatedUser.avatar = uploadRes.url;
+      updatedUser.avatarPublicId = uploadRes.publicId;
+
+      await updatedUser.save();
+
+      res.json({
+        _id: updatedUser._id,
+        avatar: updatedUser.avatar,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        verified: updatedUser.verified,
+        admin: updatedUser.admin,
+        token: updatedUser.generateJWT(),
+      });
+    } else {
+      // get user from database
+      let updatedUser = await User.findById(req.user._id);
+
+      // extract avatarPublicId from user
+      let avatarPublicId = updatedUser.avatarPublicId;
+
+      // set them null
+      updatedUser.avatar = "";
+      updatedUser.avatarPublicId = "";
+
+      // remove image from from cloudinary
+      await deleteFromCloudinary(avatarPublicId);
+
+      // save the user to the database
+      await updatedUser.save();
+
+      res.json({
+        _id: updatedUser._id,
+        avatar: updatedUser.avatar,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        verified: updatedUser.verified,
+        admin: updatedUser.admin,
+        token: updatedUser.generateJWT(),
+      });
+    }
   } catch (error) {
     next(error);
   }
@@ -250,13 +265,13 @@ export const deleteUser = async (req, res, next) => {
       _id: { $in: postIdsToDelete },
     });
 
-    postsToDelete.forEach((post) => {
-      fileRemover(post.photo);
-    });
+    await Promise.all(
+      postsToDelete.map((post) => deleteFromCloudinary(post.photoPublicId))
+    );
 
-    let avatar = user.avatar;
-    if (avatar) {
-      fileRemover(avatar);
+    let avatarPublicId = user.avatarPublicId;
+    if (avatarPublicId) {
+      await deleteFromCloudinary(avatarPublicId);
     }
     await user.deleteOne();
 

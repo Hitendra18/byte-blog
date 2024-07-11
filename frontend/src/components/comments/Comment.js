@@ -38,7 +38,7 @@ const Comment = ({
         className="w-9 h-9 rounded-full object-cover"
         src={
           comment?.user?.avatar
-            ? process.env.REACT_APP_UPLOAD_FOLDER_BASE_URL + comment.user.avatar
+            ? comment.user.avatar
             : images.PostProfileImage
         }
         alt="profile"

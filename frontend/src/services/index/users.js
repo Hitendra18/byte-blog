@@ -6,7 +6,6 @@ const axiosInstance = axios.create({ baseURL: BASE_URL });
 
 export const signup = async ({ name, email, password }) => {
   try {
-    console.log(name, email, password);
     const { data } = await axiosInstance.post("/api/users/register", {
       name,
       email,
@@ -23,7 +22,6 @@ export const signup = async ({ name, email, password }) => {
 
 export const login = async ({ email, password }) => {
   try {
-    console.log(email, password);
     const { data } = await axiosInstance.post("/api/users/login", {
       email,
       password,
@@ -66,7 +64,6 @@ export const updateProfile = async ({ token, userData, userId }) => {
         Authorization: `Bearer ${token}`,
       },
     };
-    console.log("data sent to update user", userData);
 
     const { data } = await axiosInstance.put(
       `/api/users/updateProfile/${userId}`,

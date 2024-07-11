@@ -6,10 +6,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: (_, __, cb) => {
     cb(null, path.join(__dirname, "../uploads"));
   },
-  filename: (req, file, cb) => {
+  filename: (_, file, cb) => {
     cb(
       null,
       `${Date.now()}-${Math.floor(Math.random() * 1000000000)}${path.extname(
@@ -22,11 +22,10 @@ const storage = multer.diskStorage({
 export const uploadPicture = multer({
   storage,
   limits: {
-    fileSize: 1 * 1024 * 1024,
+    fileSize: 5 * 1024 * 1024,
   },
-  fileFilter: function (req, file, cb) {
+  fileFilter: function (_, file, cb) {
     let ext = path.extname(file.originalname);
-    console.log(ext);
 
     if (
       ext !== ".png" &&

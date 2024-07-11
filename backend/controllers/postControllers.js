@@ -1,8 +1,16 @@
-import { uploadPicture } from "../middleware/uploadPictureMiddleware.js";
+import path from "path";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 import Post from "../models/Post.js";
 import Comment from "../models/Comment.js";
 import { fileRemover } from "../utils/fileRemover.js";
 import { v4 as uuidv4 } from "uuid";
+import {
+  deleteFromCloudinary,
+  uploadOnCloudinary,
+} from "../utils/cloudinary.js";
 
 export const createPost = async (req, res, next) => {
   try {
@@ -15,6 +23,7 @@ export const createPost = async (req, res, next) => {
         content: [],
       },
       photo: "",
+      photoPublicId: "",
       user: req.user._id,
     });
     const createdPost = await post.save();
@@ -29,15 +38,15 @@ export const updatePost = async (req, res, next) => {
     const post = await Post.findOne({ slug: req.params.slug });
 
     if (!post) {
-      const error = new Error("Post aws not found");
+      const error = new Error("Post was not found");
       next(error);
       return;
     }
 
-    const upload = uploadPicture.single("postPicture");
-
     const handleUpdatePostData = async (data) => {
-      const { title, caption, slug, body, tags, categories } = JSON.parse(data);
+      const { title, caption, slug, body, tags, categories } = JSON.parse(
+        data || "{}"
+      );
       post.title = title || post.title;
       post.caption = caption || post.caption;
       post.slug = slug || post.slug;
@@ -48,31 +57,43 @@ export const updatePost = async (req, res, next) => {
       return res.json(updatedPost);
     };
 
-    upload(req, res, async function (err) {
-      if (err) {
-        const error = new Error(
-          "An unknown error occurred when uploading " + err.message
-        );
-        next(error);
-      } else {
-        // every thing went well
-        if (req.file) {
-          let filename;
-          filename = post.photo;
-          if (filename) {
-            fileRemover(filename);
-          }
-          post.photo = req.file.filename;
-          handleUpdatePostData(req.body.document);
-        } else {
-          let filename;
-          filename = post.photo;
-          post.photo = "";
-          fileRemover(filename);
-          handleUpdatePostData(req.body.document);
+    if (req.file) {
+      let filename = req.file.filename;
+      let photoPublicId = post.photoPublicId;
+
+      // if previously any photo exists then remove it
+      if (photoPublicId) {
+        const res = await deleteFromCloudinary(photoPublicId);
+        if (res == null) {
+          const err = new Error("error removing post photo...");
+          return next(err);
         }
       }
-    });
+
+      // after removing previous photo upload new one
+      const uploadRes = await uploadOnCloudinary(
+        path.join(__dirname, "..", "uploads", filename)
+      );
+      fileRemover(filename);
+
+      // if not uploaded then throw an error
+      if (uploadRes == null) {
+        const err = new Error("error uploading post photo...");
+        return next(err);
+      }
+
+      post.photo = uploadRes.url;
+      post.photoPublicId = uploadRes.publicId;
+      handleUpdatePostData(req.body.document);
+    } else {
+      let photoPublicId = post.photoPublicId;
+      post.photo = "";
+      post.photoPublicId = "";
+
+      // remove image from from cloudinary
+      await deleteFromCloudinary(photoPublicId);
+      handleUpdatePostData(req.body.document);
+    }
   } catch (error) {
     next(error);
   }
@@ -86,7 +107,7 @@ export const deletePost = async (req, res, next) => {
       return next(error);
     }
 
-    fileRemover(post.photo);
+    await deleteFromCloudinary(post.photoPublicId);
 
     await Comment.deleteMany({ post: post._id });
     return res.json({ message: "Post is successfully deleted" });
@@ -143,17 +164,14 @@ export const getAllPosts = async (req, res, next) => {
   try {
     const filter = req.query.searchKeyWord;
     let where = {};
-    // if (filter) {
-    //   where.title = { $regex: filter, $options: "i" };
-    //   where.caption = { $regex: filter, $options: "i" };
-    // }
+
     if (filter) {
       where.$or = [
         { title: { $regex: filter, $options: "i" } },
         { caption: { $regex: filter, $options: "i" } },
       ];
     }
-    // let query = Post.find(where);
+
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * pageSize;

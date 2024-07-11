@@ -91,7 +91,7 @@ const Users = () => {
                     alt={user?.name}
                     src={
                       user?.avatar
-                        ? process.env.REACT_APP_UPLOAD_FOLDER_BASE_URL + user?.avatar
+                        ? user?.avatar
                         : images.SampleProfileImage
                     }
                     className="mx-auto object-cover rounded-md aspect-square w-10 "

@@ -36,7 +36,6 @@ const ProfilePage = () => {
       localStorage.setItem("account", JSON.stringify(data));
       queryClient.invalidateQueries(["profile"]);
       toast.success("Profile is updated");
-      console.log(data);
     },
     onError: (error) => {
       toast.error(error.message);

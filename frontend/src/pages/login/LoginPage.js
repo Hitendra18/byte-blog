@@ -21,7 +21,6 @@ const LoginPage = () => {
     onSuccess: (data) => {
       dispatch(userActions.setUserInfo(data));
       localStorage.setItem("account", JSON.stringify(data));
-      console.log(data);
     },
     onError: (error) => {
       toast.error(error.message);
@@ -48,7 +47,6 @@ const LoginPage = () => {
   });
 
   const submitHandler = (data) => {
-    // console.log(data);
     const { email, password } = data;
     mutate({ email, password });
   };

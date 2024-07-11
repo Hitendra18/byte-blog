@@ -12,7 +12,7 @@ const ArticleCard = ({ post, className }) => {
         <img
           src={
             post.photo
-              ? process.env.REACT_APP_UPLOAD_FOLDER_BASE_URL + post.photo
+              ? post.photo
               : images.SampleImage
           }
           alt="title"
@@ -34,7 +34,7 @@ const ArticleCard = ({ post, className }) => {
             <img
               src={
                 post.user.avatar
-                  ? process.env.REACT_APP_UPLOAD_FOLDER_BASE_URL + post.user.avatar
+                  ? post.user.avatar
                   : images.SampleProfileImage
               }
               alt="profile"

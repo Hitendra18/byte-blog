@@ -90,7 +90,7 @@ const EditPost = () => {
         return file;
       };
       const picture = await urlToObject(
-        process.env.REACT_APP_UPLOAD_FOLDER_BASE_URL + data?.photo
+        data?.photo
       );
       updatedData.append("postPicture", picture);
     }
@@ -134,7 +134,7 @@ const EditPost = () => {
                 />
               ) : initialPhoto ? (
                 <img
-                  src={process.env.REACT_APP_UPLOAD_FOLDER_BASE_URL + data?.photo}
+                  src={data?.photo}
                   alt={data?.title}
                   className="rounded-xl w-full"
                 />

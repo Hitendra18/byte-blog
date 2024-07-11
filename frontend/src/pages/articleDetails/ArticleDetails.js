@@ -18,7 +18,6 @@ const ArticleDetails = () => {
   const userState = useSelector((state) => state.user);
   const { slug } = useParams();
   const [breadCrumbData, setBreadCrumbData] = useState([]);
-  // const [body, setBody] = useState("");
 
   const { data, isLoading, isError } = useQuery({
     queryFn: () =>
@@ -55,7 +54,7 @@ const ArticleDetails = () => {
               className="rounded-xl w-full mt-4"
               src={
                 data?.photo
-                  ? process.env.REACT_APP_UPLOAD_FOLDER_BASE_URL + data.photo
+                  ? data.photo
                   : images.SampleImage
               }
               alt={data?.title}

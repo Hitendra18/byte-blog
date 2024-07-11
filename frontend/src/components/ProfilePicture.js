@@ -29,7 +29,6 @@ const ProfilePicture = ({ avatar }) => {
       localStorage.setItem("account", JSON.stringify(data));
       queryClient.invalidateQueries(["profile"]);
       toast.success("Profile picture is removed");
-      // console.log(data);
     },
     onError: (error) => {
       toast.error(error.message);
@@ -73,7 +72,7 @@ const ProfilePicture = ({ avatar }) => {
             {avatar ? (
               <>
                 <img
-                  src={process.env.REACT_APP_UPLOAD_FOLDER_BASE_URL + avatar}
+                  src={avatar}
                   alt="profile"
                   className="w-full h-full object-cover"
                 />

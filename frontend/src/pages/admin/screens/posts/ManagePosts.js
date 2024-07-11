@@ -57,7 +57,7 @@ const ManagePosts = () => {
                     alt="post title"
                     src={
                       post?.photo
-                        ? process.env.REACT_APP_UPLOAD_FOLDER_BASE_URL + post?.photo
+                        ? post?.photo
                         : images.SampleImage
                     }
                     className="mx-auto object-cover rounded-md aspect-square w-10 "
@@ -73,7 +73,6 @@ const ManagePosts = () => {
           </td>
           <td className="px-5 py-5 text-sm bg-white border-b border-gray-200">
             <p className="text-gray-900 whitespace-no-wrap">
-              {/* {console.log(post?.title, post?.categories)} */}
               {post.categories.length > 0
                 ? post.categories
                     .slice(0, 3)

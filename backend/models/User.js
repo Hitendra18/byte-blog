@@ -9,6 +9,7 @@ const { sign } = jsonwebtoken;
 const UserSchema = new Schema(
   {
     avatar: { type: String, default: "" },
+    avatarPublicId: { type: String, default: "" },
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
